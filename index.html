@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daily — Calorie Tracker</title>
+<style>
+  :root{
+    --bg: #0c0d0d;
+    --card: #17181a;
+    --card-2: #1e2021;
+    --line: #2a2c2d;
+    --text: #f2f3f1;
+    --muted: #8b908c;
+    --lime: #c7f230;
+    --lime-dim: rgba(199,242,48,0.14);
+    --protein: #4f8dfc;
+    --carbs: #ef5b5b;
+    --fat: #e8c14a;
+    --radius-lg: 22px;
+    --radius-md: 16px;
+    --radius-sm: 12px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", Arial, sans-serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+  }
+  .phone{
+    width:100%;
+    max-width:430px;
+    min-height:100vh;
+    padding:20px 18px 100px;
+    position:relative;
+  }
+  header.top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:18px;
+  }
+  header.top h1{
+    font-size:30px;
+    font-weight:700;
+    margin:0;
+    letter-spacing:-0.02em;
+  }
+  .icon-btn{
+    width:38px;height:38px;
+    border-radius:50%;
+    background:var(--card);
+    display:flex;align-items:center;justify-content:center;
+    color:var(--muted);
+    border:1px solid var(--line);
+  }
+
+  .date-strip{
+    display:flex;
+    gap:8px;
+    overflow-x:auto;
+    padding-bottom:4px;
+    margin-bottom:22px;
+    scrollbar-width:none;
+  }
+  .date-strip::-webkit-scrollbar{display:none;}
+  .date-chip{
+    flex:0 0 auto;
+    display:flex;align-items:center;gap:6px;
+    padding:10px 14px;
+    border-radius:999px;
+    background:transparent;
+    color:var(--muted);
+    font-size:14px;
+    font-weight:600;
+    border:1px solid transparent;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .date-chip .dot{
+    width:14px;height:14px;border-radius:50%;
+    border:1.5px solid var(--muted);
+  }
+  .date-chip.active{
+    background:var(--card-2);
+    color:var(--text);
+    border-color:var(--line);
+  }
+  .date-chip.active .dot{
+    border-color:var(--lime);
+    background:transparent;
+    position:relative;
+  }
+  .date-chip.active .dot::after{
+    content:"";
+    position:absolute;inset:3px;
+    background:var(--lime);
+    border-radius:50%;
+  }
+
+  section.block{margin-bottom:22px;}
+  .block-title{
+    display:flex;align-items:center;gap:8px;
+    font-size:19px;font-weight:700;
+    margin:0 0 12px 2px;
+  }
+  .block-title .info{color:var(--muted);font-size:15px;}
+
+  .cal-card{
+    background:var(--card);
+    border-radius:var(--radius-lg);
+    padding:20px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    border:1px solid var(--line);
+  }
+  .cal-left .label{
+    display:flex;align-items:center;gap:8px;
+    color:var(--muted);
+    font-size:15px;
+    font-weight:600;
+    margin-bottom:10px;
+  }
+  .cal-left .big{
+    font-size:38px;
+    font-weight:800;
+    letter-spacing:-0.02em;
+  }
+  .cal-left .sub{
+    color:var(--muted);
+    font-size:14px;
+    margin-top:2px;
+  }
+  .adjust-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-top:14px;
+    background:var(--card-2);
+    border-radius:999px;
+    padding:8px 10px;
+    width:fit-content;
+    font-size:13px;
+    font-weight:600;
+    color:var(--text);
+  }
+  .adjust-row span.sep{color:var(--line);}
+  .adjust-row button{
+    background:none;border:none;color:inherit;
+    display:flex;align-items:center;gap:6px;
+    font:inherit;cursor:pointer;
+  }
+  .adjust-row .pill-icon{
+    width:20px;height:20px;border-radius:50%;
+    background:#2a2c2d;
+    display:flex;align-items:center;justify-content:center;
+    font-size:11px;
+  }
+
+  .ring-wrap{
+    display:flex;flex-direction:column;align-items:center;gap:10px;
+    flex-shrink:0;
+  }
+  .ring-pct{
+    font-size:24px;font-weight:800;
+  }
+  .quick-log-btn{
+    background:var(--card-2);
+    border:1px solid var(--line);
+    color:var(--text);
+    font-size:12px;font-weight:700;
+    padding:8px 14px;
+    border-radius:999px;
+    display:flex;align-items:center;gap:6px;
+    cursor:pointer;
+  }
+
+  .macro-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:12px;
+  }
+  .macro-card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius-md);
+    padding:14px 10px 18px;
+    display:flex;flex-direction:column;align-items:center;
+    gap:10px;
+  }
+  .macro-tag{
+    font-size:11px;font-weight:800;
+    padding:4px 10px;
+    border-radius:999px;
+    color:#0c0d0d;
+  }
+  .macro-tag.protein{background:var(--protein);color:#fff;}
+  .macro-tag.carbs{background:var(--carbs);color:#fff;}
+  .macro-tag.fat{background:var(--fat);}
+  .macro-name{
+    font-size:13.5px;font-weight:700;
+    display:flex;align-items:center;gap:5px;
+    color:var(--text);
+  }
+  .macro-eaten{
+    font-size:12px;color:var(--muted);
+    text-align:center;
+    margin-top:-4px;
+  }
+  .macro-eaten b{
+    display:block;
+    font-size:16px;
+    color:var(--text);
+    font-weight:800;
+  }
+
+  .ai-banner{
+    border:1px solid var(--lime);
+    border-radius:999px;
+    padding:14px 8px 14px 18px;
+    display:flex;align-items:center;justify-content:space-between;
+    gap:10px;
+    background:linear-gradient(90deg, rgba(199,242,48,0.06), transparent);
+    margin-bottom:22px;
+  }
+  .ai-banner .txt{
+    font-size:14px;font-weight:600;
+    display:flex;align-items:center;gap:10px;
+    color:var(--text);
+  }
+  .ai-banner button{
+    background:var(--card-2);
+    border:1px solid var(--line);
+    color:var(--text);
+    font-weight:700;font-size:13px;
+    padding:10px 16px;
+    border-radius:999px;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+
+  .log-item{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius-md);
+    padding:14px;
+    display:flex;align-items:center;gap:14px;
+    margin-bottom:10px;
+  }
+  .log-icon{
+    width:52px;height:52px;border-radius:12px;
+    background:var(--card-2);
+    display:flex;align-items:center;justify-content:center;
+    font-size:24px;
+    flex-shrink:0;
+  }
+  .log-info{flex:1; min-width:0;}
+  .log-name{font-weight:700;font-size:15px;margin-bottom:2px;}
+  .log-meta{color:var(--muted);font-size:13px;}
+  .log-time{color:var(--muted);font-size:13px;flex-shrink:0;}
+  .log-del{
+    background:none;border:none;color:var(--muted);
+    font-size:18px;cursor:pointer;padding:4px 6px;
+    flex-shrink:0;
+  }
+  .empty-hint{
+    color:var(--muted);
+    font-size:14px;
+    text-align:center;
+    padding:18px 0;
+  }
+
+  .fab{
+    position:fixed;
+    bottom:28px;
+    right:calc(50% - 215px + 18px);
+    width:58px;height:58px;
+    border-radius:50%;
+    background:var(--lime);
+    color:#0c0d0d;
+    border:none;
+    font-size:28px;
+    font-weight:400;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 8px 24px rgba(199,242,48,0.35);
+    cursor:pointer;
+    z-index:50;
+  }
+  @media (max-width:466px){
+    .fab{ right:18px; }
+  }
+
+  /* Modal */
+  .overlay{
+    position:fixed;inset:0;
+    background:rgba(0,0,0,0.6);
+    display:none;
+    align-items:flex-end;
+    justify-content:center;
+    z-index:100;
+  }
+  .overlay.show{display:flex;}
+  .sheet{
+    background:var(--card);
+    border-radius:24px 24px 0 0;
+    width:100%;
+    max-width:430px;
+    padding:22px 20px 28px;
+    border:1px solid var(--line);
+    border-bottom:none;
+  }
+  .sheet h2{margin:0 0 18px;font-size:20px;}
+  .field{margin-bottom:14px;}
+  .field label{
+    display:block;font-size:13px;color:var(--muted);
+    margin-bottom:6px;font-weight:600;
+  }
+  .field input{
+    width:100%;
+    background:var(--card-2);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:12px 14px;
+    color:var(--text);
+    font-size:15px;
+    font-family:inherit;
+  }
+  .field input:focus{outline:2px solid var(--lime); outline-offset:1px;}
+  .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .sheet-actions{display:flex;gap:10px;margin-top:8px;}
+  .btn{
+    flex:1;
+    padding:14px;
+    border-radius:14px;
+    border:none;
+    font-weight:700;
+    font-size:15px;
+    cursor:pointer;
+    font-family:inherit;
+  }
+  .btn.primary{background:var(--lime);color:#0c0d0d;}
+  .btn.secondary{background:var(--card-2);color:var(--text);border:1px solid var(--line);}
+
+  .goal-link{
+    text-align:center;
+    color:var(--muted);
+    font-size:13px;
+    margin-top:-8px;
+    margin-bottom:20px;
+    text-decoration:underline;
+    cursor:pointer;
+  }
+
+  .tab-row{
+    display:flex;
+    background:var(--card-2);
+    border-radius:12px;
+    padding:4px;
+    margin-bottom:18px;
+    border:1px solid var(--line);
+  }
+  .tab-btn{
+    flex:1;
+    text-align:center;
+    padding:10px 6px;
+    border-radius:9px;
+    font-size:13.5px;
+    font-weight:700;
+    color:var(--muted);
+    background:none;
+    border:none;
+    cursor:pointer;
+    font-family:inherit;
+  }
+  .tab-btn.active{background:var(--card);color:var(--text);}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+
+  .search-row{display:flex;gap:8px;margin-bottom:12px;}
+  .search-row input{flex:1;}
+  .icon-square-btn{
+    background:var(--lime);
+    color:#0c0d0d;
+    border:none;
+    border-radius:12px;
+    padding:0 16px;
+    font-weight:800;
+    font-size:14px;
+    cursor:pointer;
+  }
+  .results-list{
+    max-height:260px;
+    overflow-y:auto;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    margin-bottom:6px;
+  }
+  .result-item{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    background:var(--card-2);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:10px 12px;
+    cursor:pointer;
+    text-align:left;
+  }
+  .result-item img{
+    width:40px;height:40px;border-radius:8px;object-fit:cover;background:#111;flex-shrink:0;
+  }
+  .result-info{min-width:0;flex:1;}
+  .result-name{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .result-meta{font-size:12px;color:var(--muted);}
+  .status-msg{
+    color:var(--muted);
+    font-size:13.5px;
+    text-align:center;
+    padding:14px 0;
+  }
+  .selected-product{
+    background:var(--lime-dim);
+    border:1px solid var(--lime);
+    border-radius:12px;
+    padding:12px 14px;
+    margin-bottom:14px;
+    font-size:13.5px;
+  }
+  .selected-product .sp-name{font-weight:700;margin-bottom:2px;}
+  .selected-product .sp-meta{color:var(--muted);font-size:12.5px;}
+  #camWrap{
+    display:none;
+    margin-bottom:14px;
+    border-radius:14px;
+    overflow:hidden;
+    position:relative;
+    background:#000;
+  }
+  #camVideo{width:100%;display:block;max-height:220px;object-fit:cover;}
+  .cam-close{
+    position:absolute;top:8px;right:8px;
+    background:rgba(0,0,0,0.6);
+    color:#fff;border:none;border-radius:50%;
+    width:28px;height:28px;font-size:14px;cursor:pointer;
+  }
+</style>
+</head>
+<body>
+<div class="phone">
+
+  <header class="top">
+    <h1>Daily</h1>
+    <div class="icon-btn">📈</div>
+  </header>
+
+  <div class="date-strip" id="dateStrip"></div>
+
+  <section class="block">
+    <div class="block-title">Nutrition <span class="info">ⓘ</span></div>
+
+    <div class="cal-card">
+      <div class="cal-left">
+        <div class="label">🔥 Calories</div>
+        <div class="big" id="calEaten">0</div>
+        <div class="sub"><span id="calGoalTxt">/2000kcal</span> Eaten</div>
+        <div class="adjust-row">
+          <button onclick="openGoalEdit()"><span class="pill-icon">⟲</span> Set Goal</button>
+          <span class="sep">|</span>
+          <button><span class="pill-icon">⇄</span> +0 kcal</button>
+        </div>
+      </div>
+      <div class="ring-wrap">
+        <svg width="120" height="120" viewBox="0 0 120 120">
+          <circle cx="60" cy="60" r="52" stroke="#2a2c2d" stroke-width="10" fill="none"/>
+          <circle id="calRing" cx="60" cy="60" r="52" stroke="#f2f3f1" stroke-width="10" fill="none"
+            stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="326.7"
+            transform="rotate(-90 60 60)"/>
+          <text x="60" y="66" text-anchor="middle" fill="#f2f3f1" font-size="22" font-weight="800" id="calPct">0%</text>
+        </svg>
+        <button class="quick-log-btn" onclick="openAdd()">Quick Log +</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="macro-grid">
+      <div class="macro-card">
+        <div class="macro-tag protein" id="proteinPct">0%</div>
+        <div class="macro-name">🔎 Protein</div>
+        <svg width="88" height="88" viewBox="0 0 88 88">
+          <circle cx="44" cy="44" r="38" stroke="#2a2c2d" stroke-width="8" fill="none"/>
+          <circle id="proteinRing" cx="44" cy="44" r="38" stroke="var(--protein)" stroke-width="8" fill="none"
+            stroke-linecap="round" stroke-dasharray="238.8" stroke-dashoffset="238.8" transform="rotate(-90 44 44)"/>
+        </svg>
+        <div class="macro-eaten">Eaten<b id="proteinEaten">0.0g</b><span id="proteinGoal">/150g</span></div>
+      </div>
+      <div class="macro-card">
+        <div class="macro-tag carbs" id="carbsPct">0%</div>
+        <div class="macro-name">😀 Carbs</div>
+        <svg width="88" height="88" viewBox="0 0 88 88">
+          <circle cx="44" cy="44" r="38" stroke="#2a2c2d" stroke-width="8" fill="none"/>
+          <circle id="carbsRing" cx="44" cy="44" r="38" stroke="var(--carbs)" stroke-width="8" fill="none"
+            stroke-linecap="round" stroke-dasharray="238.8" stroke-dashoffset="238.8" transform="rotate(-90 44 44)"/>
+        </svg>
+        <div class="macro-eaten">Eaten<b id="carbsEaten">0.0g</b><span id="carbsGoal">/250g</span></div>
+      </div>
+      <div class="macro-card">
+        <div class="macro-tag fat" id="fatPct">0%</div>
+        <div class="macro-name">💧 Fat</div>
+        <svg width="88" height="88" viewBox="0 0 88 88">
+          <circle cx="44" cy="44" r="38" stroke="#2a2c2d" stroke-width="8" fill="none"/>
+          <circle id="fatRing" cx="44" cy="44" r="38" stroke="var(--fat)" stroke-width="8" fill="none"
+            stroke-linecap="round" stroke-dasharray="238.8" stroke-dashoffset="238.8" transform="rotate(-90 44 44)"/>
+        </svg>
+        <div class="macro-eaten">Eaten<b id="fatEaten">0.0g</b><span id="fatGoal">/65g</span></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="ai-banner">
+    <div class="txt">✨ Today's summary updates as you log</div>
+  </div>
+
+  <section class="block">
+    <div class="block-title">Log</div>
+    <div id="logList"></div>
+    <div class="empty-hint" id="emptyHint">Nothing logged yet — tap + to add your first item.</div>
+  </section>
+
+</div>
+
+<button class="fab" onclick="openAdd()">+</button>
+
+<!-- Add Food Modal -->
+<div class="overlay" id="addOverlay">
+  <div class="sheet">
+    <h2>Log food</h2>
+
+    <div class="tab-row">
+      <button class="tab-btn active" id="tabBtnSearch" onclick="switchTab('search')">Search</button>
+      <button class="tab-btn" id="tabBtnBarcode" onclick="switchTab('barcode')">Barcode</button>
+      <button class="tab-btn" id="tabBtnManual" onclick="switchTab('manual')">Manual</button>
+    </div>
+
+    <!-- Search tab -->
+    <div class="tab-panel active" id="panelSearch">
+      <div class="search-row">
+        <input type="text" id="searchQuery" placeholder="Search a food, e.g. banana" onkeydown="if(event.key==='Enter')runSearch()">
+        <button class="icon-square-btn" onclick="runSearch()">Search</button>
+      </div>
+      <div id="searchStatus" class="status-msg">Powered by Open Food Facts — search any packaged or common food.</div>
+      <div class="results-list" id="searchResults"></div>
+    </div>
+
+    <!-- Barcode tab -->
+    <div class="tab-panel" id="panelBarcode">
+      <div id="camWrap">
+        <video id="camVideo" autoplay playsinline muted></video>
+        <button class="cam-close" onclick="stopScan()">✕</button>
+      </div>
+      <div class="search-row">
+        <input type="text" id="barcodeInput" placeholder="Enter barcode number" inputmode="numeric" onkeydown="if(event.key==='Enter')lookupBarcode()">
+        <button class="icon-square-btn" onclick="lookupBarcode()">Look up</button>
+      </div>
+      <button class="btn secondary" style="width:100%;margin-bottom:12px;" onclick="startScan()">📷 Scan with camera</button>
+      <div id="barcodeStatus" class="status-msg">Scan a product barcode or type it in manually.</div>
+    </div>
+
+    <!-- Manual tab -->
+    <div class="tab-panel" id="panelManual">
+      <div class="field">
+        <label>Food name</label>
+        <input type="text" id="foodNameManual" placeholder="e.g. Grilled chicken bowl">
+      </div>
+      <div class="row3">
+        <div class="field">
+          <label>Calories</label>
+          <input type="number" id="foodCalManual" placeholder="0">
+        </div>
+        <div class="field">
+          <label>Protein (g)</label>
+          <input type="number" id="foodProteinManual" placeholder="0">
+        </div>
+        <div class="field">
+          <label>Carbs (g)</label>
+          <input type="number" id="foodCarbsManual" placeholder="0">
+        </div>
+      </div>
+      <div class="field">
+        <label>Fat (g)</label>
+        <input type="number" id="foodFatManual" placeholder="0">
+      </div>
+    </div>
+
+    <!-- Shown once a product is picked from Search or Barcode -->
+    <div id="productConfirm" style="display:none;">
+      <div class="selected-product" id="selectedProductInfo"></div>
+      <div class="field">
+        <label>Serving size (g)</label>
+        <input type="number" id="servingGrams" value="100" oninput="rescaleServing()">
+      </div>
+      <div class="row3">
+        <div class="field">
+          <label>Calories</label>
+          <input type="number" id="foodCal">
+        </div>
+        <div class="field">
+          <label>Protein (g)</label>
+          <input type="number" id="foodProtein">
+        </div>
+        <div class="field">
+          <label>Carbs (g)</label>
+          <input type="number" id="foodCarbs">
+        </div>
+      </div>
+      <div class="field">
+        <label>Fat (g)</label>
+        <input type="number" id="foodFat">
+      </div>
+    </div>
+
+    <div class="sheet-actions">
+      <button class="btn secondary" onclick="closeAdd()">Cancel</button>
+      <button class="btn primary" onclick="saveFood()">Add to log</button>
+    </div>
+  </div>
+</div>
+
+<!-- Goal Modal -->
+<div class="overlay" id="goalOverlay">
+  <div class="sheet">
+    <h2>Set daily goals</h2>
+    <div class="field">
+      <label>Calorie goal (kcal)</label>
+      <input type="number" id="goalCal" placeholder="2000">
+    </div>
+    <div class="row3">
+      <div class="field">
+        <label>Protein (g)</label>
+        <input type="number" id="goalProtein" placeholder="150">
+      </div>
+      <div class="field">
+        <label>Carbs (g)</label>
+        <input type="number" id="goalCarbs" placeholder="250">
+      </div>
+      <div class="field">
+        <label>Fat (g)</label>
+        <input type="number" id="goalFat" placeholder="65">
+      </div>
+    </div>
+    <div class="sheet-actions">
+      <button class="btn secondary" onclick="closeGoalEdit()">Cancel</button>
+      <button class="btn primary" onclick="saveGoal()">Save goals</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'calorie-tracker-data-v1';
+const GOAL_KEY = 'calorie-tracker-goals-v1';
+
+function todayKey(offset){
+  const d = new Date();
+  d.setDate(d.getDate() + offset);
+  return d.toISOString().slice(0,10);
+}
+
+let selectedDate = todayKey(0);
+
+function loadAll(){
+  try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
+  catch(e){ return {}; }
+}
+function saveAll(data){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+function loadGoals(){
+  try{
+    return JSON.parse(localStorage.getItem(GOAL_KEY)) || {cal:2000, protein:150, carbs:250, fat:65};
+  }catch(e){ return {cal:2000, protein:150, carbs:250, fat:65}; }
+}
+function saveGoals(g){
+  localStorage.setItem(GOAL_KEY, JSON.stringify(g));
+}
+
+function buildDateStrip(){
+  const strip = document.getElementById('dateStrip');
+  strip.innerHTML = '';
+  for(let i=-3;i<=3;i++){
+    const key = todayKey(i);
+    const d = new Date(key);
+    const label = i===0 ? 'Today' : (d.getMonth()+1)+'/'+d.getDate();
+    const chip = document.createElement('div');
+    chip.className = 'date-chip' + (key===selectedDate ? ' active' : '');
+    chip.innerHTML = '<span class="dot"></span>' + label;
+    chip.onclick = () => { selectedDate = key; buildDateStrip(); render(); };
+    strip.appendChild(chip);
+  }
+}
+
+function getDayEntries(){
+  const all = loadAll();
+  return all[selectedDate] || [];
+}
+
+function circumference(r){ return 2*Math.PI*r; }
+
+function render(){
+  const entries = getDayEntries();
+  const goals = loadGoals();
+
+  const totals = entries.reduce((acc, e) => {
+    acc.cal += Number(e.cal)||0;
+    acc.protein += Number(e.protein)||0;
+    acc.carbs += Number(e.carbs)||0;
+    acc.fat += Number(e.fat)||0;
+    return acc;
+  }, {cal:0, protein:0, carbs:0, fat:0});
+
+  document.getElementById('calEaten').textContent = totals.cal.toFixed(1).replace(/\.0$/,'');
+  document.getElementById('calGoalTxt').textContent = '/' + goals.cal + 'kcal';
+  const calPct = Math.min(100, Math.round((totals.cal/goals.cal)*100) || 0);
+  document.getElementById('calPct').textContent = calPct + '%';
+  const rCirc = circumference(52);
+  document.getElementById('calRing').setAttribute('stroke-dasharray', rCirc);
+  document.getElementById('calRing').setAttribute('stroke-dashoffset', rCirc - (rCirc*calPct/100));
+
+  setMacro('protein', totals.protein, goals.protein);
+  setMacro('carbs', totals.carbs, goals.carbs);
+  setMacro('fat', totals.fat, goals.fat);
+
+  const logList = document.getElementById('logList');
+  const emptyHint = document.getElementById('emptyHint');
+  logList.innerHTML = '';
+  if(entries.length === 0){
+    emptyHint.style.display = 'block';
+  } else {
+    emptyHint.style.display = 'none';
+    entries.slice().reverse().forEach((e, revIdx) => {
+      const idx = entries.length - 1 - revIdx;
+      const item = document.createElement('div');
+      item.className = 'log-item';
+      item.innerHTML = `
+        <div class="log-icon">🍽️</div>
+        <div class="log-info">
+          <div class="log-name">${escapeHtml(e.name)}</div>
+          <div class="log-meta">${Math.round(e.cal)} kcal · P${e.protein||0} C${e.carbs||0} F${e.fat||0}</div>
+        </div>
+        <div class="log-time">${e.time || ''}</div>
+        <button class="log-del" onclick="deleteEntry(${idx})">✕</button>
+      `;
+      logList.appendChild(item);
+    });
+  }
+}
+
+function setMacro(key, eaten, goal){
+  const pct = Math.min(100, Math.round((eaten/goal)*100) || 0);
+  document.getElementById(key+'Pct').textContent = pct + '%';
+  document.getElementById(key+'Eaten').textContent = eaten.toFixed(1) + 'g';
+  document.getElementById(key+'Goal').textContent = '/' + goal + 'g';
+  const c = circumference(38);
+  const ring = document.getElementById(key+'Ring');
+  ring.setAttribute('stroke-dasharray', c);
+  ring.setAttribute('stroke-dashoffset', c - (c*pct/100));
+}
+
+function escapeHtml(str){
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+function deleteEntry(idx){
+  const all = loadAll();
+  const entries = all[selectedDate] || [];
+  entries.splice(idx,1);
+  all[selectedDate] = entries;
+  saveAll(all);
+  render();
+}
+
+let currentTab = 'search';
+let pickedProduct = null; // {name, per100: {cal,protein,carbs,fat}}
+
+function openAdd(){
+  document.getElementById('addOverlay').classList.add('show');
+  switchTab('search');
+}
+function closeAdd(){
+  document.getElementById('addOverlay').classList.remove('show');
+  stopScan();
+  ['foodNameManual','foodCalManual','foodProteinManual','foodCarbsManual','foodFatManual',
+   'foodCal','foodProtein','foodCarbs','foodFat','searchQuery','barcodeInput'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.value = '';
+  });
+  document.getElementById('searchResults').innerHTML = '';
+  document.getElementById('productConfirm').style.display = 'none';
+  document.getElementById('servingGrams').value = 100;
+  pickedProduct = null;
+}
+
+function switchTab(tab){
+  currentTab = tab;
+  ['search','barcode','manual'].forEach(t=>{
+    document.getElementById('panel'+cap(t)).classList.toggle('active', t===tab);
+    document.getElementById('tabBtn'+cap(t)).classList.toggle('active', t===tab);
+  });
+  if(tab !== 'barcode') stopScan();
+  // product confirm block only makes sense under search/barcode
+  if(tab === 'manual'){
+    document.getElementById('productConfirm').style.display = 'none';
+  } else if(pickedProduct){
+    document.getElementById('productConfirm').style.display = 'block';
+  }
+}
+function cap(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
+
+async function runSearch(){
+  const q = document.getElementById('searchQuery').value.trim();
+  const statusEl = document.getElementById('searchStatus');
+  const resultsEl = document.getElementById('searchResults');
+  resultsEl.innerHTML = '';
+  if(!q){ statusEl.textContent = 'Type something to search.'; return; }
+  statusEl.textContent = 'Searching…';
+  try{
+    const url = 'https://world.openfoodfacts.org/cgi/search.pl?search_terms=' +
+      encodeURIComponent(q) + '&search_simple=1&action=process&json=1&page_size=12';
+    const res = await fetch(url);
+    const data = await res.json();
+    const products = (data.products || []).filter(p => p.product_name && p.nutriments);
+    if(products.length === 0){
+      statusEl.textContent = 'No results found. Try a different search or use Manual entry.';
+      return;
+    }
+    statusEl.textContent = products.length + ' results — tap one to use it:';
+    products.slice(0,12).forEach(p => {
+      const n = p.nutriments || {};
+      const cal = n['energy-kcal_100g'] ?? n['energy-kcal'] ?? 0;
+      const item = document.createElement('button');
+      item.className = 'result-item';
+      item.innerHTML = `
+        ${p.image_small_url ? `<img src="${p.image_small_url}" alt="">` : `<div class="log-icon" style="width:40px;height:40px;font-size:18px;">🍽️</div>`}
+        <div class="result-info">
+          <div class="result-name">${escapeHtml(p.product_name)}${p.brands ? ' — '+escapeHtml(p.brands.split(',')[0]) : ''}</div>
+          <div class="result-meta">${Math.round(cal)} kcal / 100g</div>
+        </div>
+      `;
+      item.onclick = () => pickProduct(p);
+      resultsEl.appendChild(item);
+    });
+  }catch(err){
+    statusEl.textContent = "Couldn't reach the food database. Check your connection and try again.";
+  }
+}
+
+async function lookupBarcode(){
+  const code = document.getElementById('barcodeInput').value.trim();
+  const statusEl = document.getElementById('barcodeStatus');
+  if(!code){ statusEl.textContent = 'Enter a barcode number first.'; return; }
+  statusEl.textContent = 'Looking up…';
+  try{
+    const res = await fetch('https://world.openfoodfacts.org/api/v2/product/' + encodeURIComponent(code) + '.json');
+    const data = await res.json();
+    if(data.status !== 1 || !data.product){
+      statusEl.textContent = 'No product found for that barcode. Try Search or Manual entry.';
+      return;
+    }
+    statusEl.textContent = 'Product found ✓';
+    pickProduct(data.product);
+  }catch(err){
+    statusEl.textContent = "Couldn't reach the food database. Check your connection and try again.";
+  }
+}
+
+function pickProduct(p){
+  const n = p.nutriments || {};
+  const per100 = {
+    cal: Number(n['energy-kcal_100g'] ?? n['energy-kcal'] ?? 0),
+    protein: Number(n['proteins_100g'] ?? 0),
+    carbs: Number(n['carbohydrates_100g'] ?? 0),
+    fat: Number(n['fat_100g'] ?? 0),
+  };
+  pickedProduct = { name: p.product_name || 'Unnamed product', per100 };
+  document.getElementById('productConfirm').style.display = 'block';
+  document.getElementById('selectedProductInfo').innerHTML =
+    `<div class="sp-name">${escapeHtml(pickedProduct.name)}</div>
+     <div class="sp-meta">${Math.round(per100.cal)} kcal · P${per100.protein.toFixed(1)}g · C${per100.carbs.toFixed(1)}g · F${per100.fat.toFixed(1)}g per 100g</div>`;
+  document.getElementById('servingGrams').value = 100;
+  rescaleServing();
+}
+
+function rescaleServing(){
+  if(!pickedProduct) return;
+  const grams = parseFloat(document.getElementById('servingGrams').value) || 0;
+  const factor = grams / 100;
+  document.getElementById('foodCal').value = (pickedProduct.per100.cal * factor).toFixed(0);
+  document.getElementById('foodProtein').value = (pickedProduct.per100.protein * factor).toFixed(1);
+  document.getElementById('foodCarbs').value = (pickedProduct.per100.carbs * factor).toFixed(1);
+  document.getElementById('foodFat').value = (pickedProduct.per100.fat * factor).toFixed(1);
+}
+
+// --- Camera barcode scanning (uses native BarcodeDetector where available) ---
+let scanStream = null;
+let scanRAF = null;
+async function startScan(){
+  const statusEl = document.getElementById('barcodeStatus');
+  if(!('BarcodeDetector' in window)){
+    statusEl.textContent = 'Camera scanning isn\'t supported in this browser — enter the barcode number instead.';
+    return;
+  }
+  try{
+    scanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    const video = document.getElementById('camVideo');
+    video.srcObject = scanStream;
+    document.getElementById('camWrap').style.display = 'block';
+    const detector = new BarcodeDetector({ formats: ['ean_13','ean_8','upc_a','upc_e','code_128'] });
+    statusEl.textContent = 'Point the camera at a barcode…';
+    const scanLoop = async () => {
+      if(!scanStream) return;
+      try{
+        const codes = await detector.detect(video);
+        if(codes.length > 0){
+          document.getElementById('barcodeInput').value = codes[0].rawValue;
+          stopScan();
+          lookupBarcode();
+          return;
+        }
+      }catch(e){ /* keep trying */ }
+      scanRAF = requestAnimationFrame(scanLoop);
+    };
+    scanRAF = requestAnimationFrame(scanLoop);
+  }catch(err){
+    statusEl.textContent = 'Camera access was denied or unavailable — enter the barcode number instead.';
+  }
+}
+function stopScan(){
+  if(scanRAF) cancelAnimationFrame(scanRAF);
+  scanRAF = null;
+  if(scanStream){
+    scanStream.getTracks().forEach(t => t.stop());
+    scanStream = null;
+  }
+  const camWrap = document.getElementById('camWrap');
+  if(camWrap) camWrap.style.display = 'none';
+}
+
+function saveFood(){
+  let name, cal, protein, carbs, fat;
+  if(currentTab === 'manual'){
+    name = document.getElementById('foodNameManual').value.trim();
+    cal = parseFloat(document.getElementById('foodCalManual').value) || 0;
+    protein = parseFloat(document.getElementById('foodProteinManual').value) || 0;
+    carbs = parseFloat(document.getElementById('foodCarbsManual').value) || 0;
+    fat = parseFloat(document.getElementById('foodFatManual').value) || 0;
+  } else {
+    if(!pickedProduct){
+      alert('Search for a food or scan a barcode first, or switch to Manual entry.');
+      return;
+    }
+    const grams = parseFloat(document.getElementById('servingGrams').value) || 100;
+    name = pickedProduct.name + ' (' + grams + 'g)';
+    cal = parseFloat(document.getElementById('foodCal').value) || 0;
+    protein = parseFloat(document.getElementById('foodProtein').value) || 0;
+    carbs = parseFloat(document.getElementById('foodCarbs').value) || 0;
+    fat = parseFloat(document.getElementById('foodFat').value) || 0;
+  }
+  if(!name || cal <= 0){
+    alert('Add a food name and calorie amount.');
+    return;
+  }
+  const all = loadAll();
+  const entries = all[selectedDate] || [];
+  const now = new Date();
+  entries.push({
+    name, cal, protein, carbs, fat,
+    time: now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
+  });
+  all[selectedDate] = entries;
+  saveAll(all);
+  closeAdd();
+  render();
+}
+
+function openGoalEdit(){
+  const g = loadGoals();
+  document.getElementById('goalCal').value = g.cal;
+  document.getElementById('goalProtein').value = g.protein;
+  document.getElementById('goalCarbs').value = g.carbs;
+  document.getElementById('goalFat').value = g.fat;
+  document.getElementById('goalOverlay').classList.add('show');
+}
+function closeGoalEdit(){
+  document.getElementById('goalOverlay').classList.remove('show');
+}
+function saveGoal(){
+  const g = {
+    cal: parseFloat(document.getElementById('goalCal').value) || 2000,
+    protein: parseFloat(document.getElementById('goalProtein').value) || 150,
+    carbs: parseFloat(document.getElementById('goalCarbs').value) || 250,
+    fat: parseFloat(document.getElementById('goalFat').value) || 65,
+  };
+  saveGoals(g);
+  closeGoalEdit();
+  render();
+}
+
+buildDateStrip();
+render();
+</script>
+</body>
+</html>
