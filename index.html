@@ -188,20 +188,20 @@
 
   .macro-grid{
     display:grid;
-    grid-template-columns:repeat(2,1fr);
-    gap:12px;
+    grid-template-columns:repeat(4,1fr);
+    gap:8px;
   }
   .macro-card{
     background:var(--card);
     border:1px solid var(--line);
     border-radius:var(--radius-md);
-    padding:14px 10px 18px;
+    padding:10px 4px 12px;
     display:flex;flex-direction:column;align-items:center;
-    gap:10px;
+    gap:6px;
   }
   .macro-tag{
-    font-size:11px;font-weight:800;
-    padding:4px 10px;
+    font-size:9px;font-weight:800;
+    padding:3px 7px;
     border-radius:999px;
     color:#0c0d0d;
   }
@@ -210,30 +210,31 @@
   .macro-tag.fat{background:var(--fat);}
   .macro-tag.water{background:var(--water);color:#fff;}
   .macro-name{
-    font-size:13.5px;font-weight:700;
-    display:flex;align-items:center;gap:5px;
+    font-size:10.5px;font-weight:700;
+    display:flex;align-items:center;gap:3px;
     color:var(--text);
+    white-space:nowrap;
   }
   .macro-eaten{
-    font-size:12px;color:var(--muted);
+    font-size:10px;color:var(--muted);
     text-align:center;
-    margin-top:-4px;
+    margin-top:-2px;
   }
   .macro-eaten b{
     display:block;
-    font-size:16px;
+    font-size:13px;
     color:var(--text);
     font-weight:800;
   }
   .water-quick-row{
-    display:flex;gap:6px;margin-top:2px;
+    display:flex;flex-wrap:wrap;justify-content:center;gap:4px;margin-top:2px;
   }
   .water-chip{
     background:var(--card-2);
     border:1px solid var(--line);
     color:var(--text);
-    font-size:11.5px;font-weight:700;
-    padding:6px 10px;
+    font-size:9px;font-weight:700;
+    padding:4px 6px;
     border-radius:999px;
     cursor:pointer;
     font-family:inherit;
@@ -401,16 +402,21 @@
   .tab-panel{display:none;}
   .tab-panel.active{display:block;}
 
-  .search-row{display:flex;gap:8px;margin-bottom:12px;}
-  .search-row input{flex:1;}
+  .search-row{display:flex;flex-direction:column;gap:10px;margin-bottom:12px;}
+  .search-row input{
+    width:100%;
+    padding:18px 20px;
+    font-size:17px;
+  }
   .icon-square-btn{
+    width:100%;
     background:var(--lime);
     color:#0c0d0d;
     border:none;
     border-radius:12px;
-    padding:0 16px;
+    padding:16px 16px;
     font-weight:800;
-    font-size:14px;
+    font-size:16px;
     cursor:pointer;
   }
   .results-list{
@@ -559,40 +565,40 @@
       <div class="macro-card">
         <div class="macro-tag protein" id="proteinPct">0%</div>
         <div class="macro-name">🔎 Protein</div>
-        <svg width="88" height="88" viewBox="0 0 88 88">
-          <circle cx="44" cy="44" r="38" stroke="#2a2c2d" stroke-width="8" fill="none"/>
-          <circle id="proteinRing" cx="44" cy="44" r="38" stroke="var(--protein)" stroke-width="8" fill="none"
-            stroke-linecap="round" stroke-dasharray="238.8" stroke-dashoffset="238.8" transform="rotate(-90 44 44)"/>
+        <svg width="60" height="60" viewBox="0 0 60 60">
+          <circle cx="30" cy="30" r="25" stroke="#2a2c2d" stroke-width="6" fill="none"/>
+          <circle id="proteinRing" cx="30" cy="30" r="25" stroke="var(--protein)" stroke-width="6" fill="none"
+            stroke-linecap="round" stroke-dasharray="157.1" stroke-dashoffset="157.1" transform="rotate(-90 30 30)"/>
         </svg>
         <div class="macro-eaten">Eaten<b id="proteinEaten">0.0g</b><span id="proteinGoal">/150g</span></div>
       </div>
       <div class="macro-card">
         <div class="macro-tag carbs" id="carbsPct">0%</div>
         <div class="macro-name">😀 Carbs</div>
-        <svg width="88" height="88" viewBox="0 0 88 88">
-          <circle cx="44" cy="44" r="38" stroke="#2a2c2d" stroke-width="8" fill="none"/>
-          <circle id="carbsRing" cx="44" cy="44" r="38" stroke="var(--carbs)" stroke-width="8" fill="none"
-            stroke-linecap="round" stroke-dasharray="238.8" stroke-dashoffset="238.8" transform="rotate(-90 44 44)"/>
+        <svg width="60" height="60" viewBox="0 0 60 60">
+          <circle cx="30" cy="30" r="25" stroke="#2a2c2d" stroke-width="6" fill="none"/>
+          <circle id="carbsRing" cx="30" cy="30" r="25" stroke="var(--carbs)" stroke-width="6" fill="none"
+            stroke-linecap="round" stroke-dasharray="157.1" stroke-dashoffset="157.1" transform="rotate(-90 30 30)"/>
         </svg>
         <div class="macro-eaten">Eaten<b id="carbsEaten">0.0g</b><span id="carbsGoal">/250g</span></div>
       </div>
       <div class="macro-card">
         <div class="macro-tag fat" id="fatPct">0%</div>
         <div class="macro-name">💧 Fat</div>
-        <svg width="88" height="88" viewBox="0 0 88 88">
-          <circle cx="44" cy="44" r="38" stroke="#2a2c2d" stroke-width="8" fill="none"/>
-          <circle id="fatRing" cx="44" cy="44" r="38" stroke="var(--fat)" stroke-width="8" fill="none"
-            stroke-linecap="round" stroke-dasharray="238.8" stroke-dashoffset="238.8" transform="rotate(-90 44 44)"/>
+        <svg width="60" height="60" viewBox="0 0 60 60">
+          <circle cx="30" cy="30" r="25" stroke="#2a2c2d" stroke-width="6" fill="none"/>
+          <circle id="fatRing" cx="30" cy="30" r="25" stroke="var(--fat)" stroke-width="6" fill="none"
+            stroke-linecap="round" stroke-dasharray="157.1" stroke-dashoffset="157.1" transform="rotate(-90 30 30)"/>
         </svg>
         <div class="macro-eaten">Eaten<b id="fatEaten">0.0g</b><span id="fatGoal">/65g</span></div>
       </div>
       <div class="macro-card">
         <div class="macro-tag water" id="waterPct">0%</div>
         <div class="macro-name">🚰 Water</div>
-        <svg width="88" height="88" viewBox="0 0 88 88">
-          <circle cx="44" cy="44" r="38" stroke="#2a2c2d" stroke-width="8" fill="none"/>
-          <circle id="waterRing" cx="44" cy="44" r="38" stroke="var(--water)" stroke-width="8" fill="none"
-            stroke-linecap="round" stroke-dasharray="238.8" stroke-dashoffset="238.8" transform="rotate(-90 44 44)"/>
+        <svg width="60" height="60" viewBox="0 0 60 60">
+          <circle cx="30" cy="30" r="25" stroke="#2a2c2d" stroke-width="6" fill="none"/>
+          <circle id="waterRing" cx="30" cy="30" r="25" stroke="var(--water)" stroke-width="6" fill="none"
+            stroke-linecap="round" stroke-dasharray="157.1" stroke-dashoffset="157.1" transform="rotate(-90 30 30)"/>
         </svg>
         <div class="macro-eaten">Drank<b id="waterAmount">0ml</b><span id="waterGoalTxt">/2000ml</span></div>
         <div class="water-quick-row">
@@ -644,13 +650,13 @@
     <div class="tab-panel" id="panelBarcode">
       <div id="camWrap">
         <video id="camVideo" autoplay playsinline muted></video>
-        <button class="cam-close" onclick="pauseScan()">✕</button>
+        <button class="cam-close" onclick="pauseScan('camVideo','camWrap')">✕</button>
       </div>
       <div class="search-row">
         <input type="text" id="barcodeInput" placeholder="Enter barcode number" inputmode="numeric" onkeydown="if(event.key==='Enter')lookupBarcode()">
         <button class="icon-square-btn" onclick="lookupBarcode()">Look up</button>
       </div>
-      <button class="btn secondary" style="width:100%;margin-bottom:12px;" onclick="startScan()">📷 Scan with camera</button>
+      <button class="btn secondary" style="width:100%;margin-bottom:12px;" onclick="startScan('camVideo','camWrap','barcodeStatus', onMainBarcodeFound)">📷 Scan with camera</button>
       <div id="barcodeStatus" class="status-msg">Scan a product barcode or type it in manually.</div>
     </div>
 
@@ -768,6 +774,43 @@
     <div class="field">
       <label>Meal name</label>
       <input type="text" id="newMealName" placeholder="e.g. Lunch Bowl">
+    </div>
+
+    <div class="tab-row">
+      <button class="tab-btn active" id="mealItemTabBtnSearch" onclick="switchMealItemTab('search')">Search</button>
+      <button class="tab-btn" id="mealItemTabBtnBarcode" onclick="switchMealItemTab('barcode')">Barcode</button>
+      <button class="tab-btn" id="mealItemTabBtnManual" onclick="switchMealItemTab('manual')">Manual</button>
+    </div>
+
+    <div class="tab-panel active" id="mealItemPanelSearch">
+      <div class="search-row">
+        <input type="text" id="mealItemSearchQuery" placeholder="Search a food…" onkeydown="if(event.key==='Enter')runMealSearch()">
+        <button class="icon-square-btn" onclick="runMealSearch()">Search</button>
+      </div>
+      <div id="mealItemSearchStatus" class="status-msg">Powered by Open Food Facts.</div>
+      <div class="results-list" id="mealItemSearchResults"></div>
+    </div>
+
+    <div class="tab-panel" id="mealItemPanelBarcode">
+      <div id="mealCamWrap" style="display:none;margin-bottom:14px;border-radius:14px;overflow:hidden;position:relative;background:#000;">
+        <video id="mealCamVideo" autoplay playsinline muted style="width:100%;display:block;max-height:200px;object-fit:cover;"></video>
+        <button class="cam-close" onclick="pauseScan('mealCamVideo','mealCamWrap')">✕</button>
+      </div>
+      <div class="search-row">
+        <input type="text" id="mealBarcodeInput" placeholder="Enter barcode number" inputmode="numeric" onkeydown="if(event.key==='Enter')lookupMealBarcode()">
+        <button class="icon-square-btn" onclick="lookupMealBarcode()">Look up</button>
+      </div>
+      <button class="btn secondary" style="width:100%;margin-bottom:12px;" onclick="startScan('mealCamVideo','mealCamWrap','mealBarcodeStatus', onMealBarcodeFound)">📷 Scan with camera</button>
+      <div id="mealBarcodeStatus" class="status-msg">Scan a barcode or type it in.</div>
+    </div>
+
+    <div class="tab-panel" id="mealItemPanelManual">
+      <div class="status-msg" style="padding:0 0 8px;">Type the item's details below.</div>
+    </div>
+
+    <div class="field" id="itemServingGramsWrap" style="display:none;">
+      <label>Serving size (g)</label>
+      <input type="number" id="itemServingGrams" value="100" oninput="rescaleMealItemServing()">
     </div>
 
     <div class="row3">
@@ -1030,7 +1073,7 @@ function render(){
   document.getElementById('waterPct').textContent = waterPct + '%';
   document.getElementById('waterAmount').textContent = waterAmt + 'ml';
   document.getElementById('waterGoalTxt').textContent = '/' + waterGoal + 'ml';
-  const wc = circumference(38);
+  const wc = circumference(25);
   const waterRing = document.getElementById('waterRing');
   waterRing.setAttribute('stroke-dasharray', wc);
   waterRing.setAttribute('stroke-dashoffset', wc - (wc*waterPct/100));
@@ -1065,7 +1108,7 @@ function setMacro(key, eaten, goal){
   document.getElementById(key+'Pct').textContent = pct + '%';
   document.getElementById(key+'Eaten').textContent = eaten.toFixed(1) + 'g';
   document.getElementById(key+'Goal').textContent = '/' + goal + 'g';
-  const c = circumference(38);
+  const c = circumference(25);
   const ring = document.getElementById(key+'Ring');
   ring.setAttribute('stroke-dasharray', c);
   ring.setAttribute('stroke-dashoffset', c - (c*pct/100));
@@ -1122,7 +1165,7 @@ function openAdd(){
 }
 function closeAdd(){
   document.getElementById('addOverlay').classList.remove('show');
-  stopScan();
+  stopScanFull();
   ['foodNameManual','foodCalManual','foodProteinManual','foodCarbsManual','foodFatManual',
    'foodCal','foodProtein','foodCarbs','foodFat','searchQuery','barcodeInput','mealSearchQuery'].forEach(id => {
     const el = document.getElementById(id);
@@ -1144,7 +1187,7 @@ function switchTab(tab){
     document.getElementById('panel'+cap(t)).classList.toggle('active', t===tab);
     document.getElementById('tabBtn'+cap(t)).classList.toggle('active', t===tab);
   });
-  if(tab !== 'barcode') pauseScan();
+  if(tab !== 'barcode') pauseScan('camVideo','camWrap');
   // product confirm block only makes sense under search/barcode
   if(tab === 'search' || tab === 'barcode'){
     document.getElementById('productConfirm').style.display = pickedProduct ? 'block' : 'none';
@@ -1293,15 +1336,113 @@ function pickMeal(m){
   `;
 }
 
+let mealItemPer100 = null; // per-100g macros when an item was prefilled via Search/Barcode
+
+function switchMealItemTab(tab){
+  ['search','barcode','manual'].forEach(t=>{
+    document.getElementById('mealItemPanel'+cap(t)).classList.toggle('active', t===tab);
+    document.getElementById('mealItemTabBtn'+cap(t)).classList.toggle('active', t===tab);
+  });
+  if(tab !== 'barcode') pauseScan('mealCamVideo','mealCamWrap');
+}
+
+async function runMealSearch(){
+  const q = document.getElementById('mealItemSearchQuery').value.trim();
+  const statusEl = document.getElementById('mealItemSearchStatus');
+  const resultsEl = document.getElementById('mealItemSearchResults');
+  resultsEl.innerHTML = '';
+  if(!q){ statusEl.textContent = 'Type something to search.'; return; }
+  statusEl.textContent = 'Searching…';
+  try{
+    const url = 'https://world.openfoodfacts.org/cgi/search.pl?search_terms=' +
+      encodeURIComponent(q) + '&search_simple=1&action=process&json=1&page_size=10';
+    const res = await fetch(url);
+    const data = await res.json();
+    const products = (data.products || []).filter(p => p.product_name && p.nutriments);
+    if(products.length === 0){
+      statusEl.textContent = 'No results — try Manual entry below.';
+      return;
+    }
+    statusEl.textContent = 'Tap one to use it:';
+    products.slice(0,10).forEach(p => {
+      const n = p.nutriments || {};
+      const cal = n['energy-kcal_100g'] ?? n['energy-kcal'] ?? 0;
+      const item = document.createElement('button');
+      item.className = 'result-item';
+      item.innerHTML = `
+        ${p.image_small_url ? `<img src="${p.image_small_url}" alt="">` : `<div class="log-icon" style="width:40px;height:40px;font-size:18px;">🍽️</div>`}
+        <div class="result-info">
+          <div class="result-name">${escapeHtml(p.product_name)}${p.brands ? ' — '+escapeHtml(p.brands.split(',')[0]) : ''}</div>
+          <div class="result-meta">${Math.round(cal)} kcal / 100g</div>
+        </div>
+      `;
+      item.onclick = () => prefillMealItemFromProduct(p);
+      resultsEl.appendChild(item);
+    });
+  }catch(err){
+    statusEl.textContent = "Couldn't reach the food database. Check your connection and try again.";
+  }
+}
+
+async function lookupMealBarcode(){
+  const code = document.getElementById('mealBarcodeInput').value.trim();
+  const statusEl = document.getElementById('mealBarcodeStatus');
+  if(!code){ statusEl.textContent = 'Enter a barcode number first.'; return; }
+  statusEl.textContent = 'Looking up…';
+  try{
+    const res = await fetch('https://world.openfoodfacts.org/api/v2/product/' + encodeURIComponent(code) + '.json');
+    const data = await res.json();
+    if(data.status !== 1 || !data.product){
+      statusEl.textContent = 'No product found. Try Search or Manual entry.';
+      return;
+    }
+    statusEl.textContent = 'Product found ✓';
+    prefillMealItemFromProduct(data.product);
+  }catch(err){
+    statusEl.textContent = "Couldn't reach the food database. Check your connection and try again.";
+  }
+}
+
+function prefillMealItemFromProduct(p){
+  const n = p.nutriments || {};
+  mealItemPer100 = {
+    cal: Number(n['energy-kcal_100g'] ?? n['energy-kcal'] ?? 0),
+    protein: Number(n['proteins_100g'] ?? 0),
+    carbs: Number(n['carbohydrates_100g'] ?? 0),
+    fat: Number(n['fat_100g'] ?? 0),
+  };
+  document.getElementById('itemName').value = p.product_name || 'Unnamed product';
+  document.getElementById('itemServingGramsWrap').style.display = 'block';
+  document.getElementById('itemServingGrams').value = 100;
+  rescaleMealItemServing();
+}
+
+function rescaleMealItemServing(){
+  if(!mealItemPer100) return;
+  const grams = parseFloat(document.getElementById('itemServingGrams').value) || 0;
+  const factor = grams / 100;
+  document.getElementById('itemCal').value = (mealItemPer100.cal * factor).toFixed(0);
+  document.getElementById('itemProtein').value = (mealItemPer100.protein * factor).toFixed(1);
+  document.getElementById('itemCarbs').value = (mealItemPer100.carbs * factor).toFixed(1);
+  document.getElementById('itemFat').value = (mealItemPer100.fat * factor).toFixed(1);
+}
+
 function openCreateMeal(){
   tempMealItems = [];
+  mealItemPer100 = null;
   document.getElementById('newMealName').value = '';
-  ['itemName','itemCal','itemProtein','itemCarbs','itemFat'].forEach(id => document.getElementById(id).value = '');
+  ['itemName','itemCal','itemProtein','itemCarbs','itemFat','mealItemSearchQuery','mealBarcodeInput'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('mealItemSearchResults').innerHTML = '';
+  document.getElementById('mealItemSearchStatus').textContent = 'Powered by Open Food Facts.';
+  document.getElementById('mealBarcodeStatus').textContent = 'Scan a barcode or type it in.';
+  document.getElementById('itemServingGramsWrap').style.display = 'none';
+  switchMealItemTab('search');
   renderTempMealItems();
   document.getElementById('createMealOverlay').classList.add('show');
 }
 function closeCreateMeal(){
   document.getElementById('createMealOverlay').classList.remove('show');
+  pauseScan('mealCamVideo','mealCamWrap');
 }
 
 function addMealItemTemp(){
@@ -1316,6 +1457,8 @@ function addMealItemTemp(){
   }
   tempMealItems.push({name, cal, protein, carbs, fat});
   ['itemName','itemCal','itemProtein','itemCarbs','itemFat'].forEach(id => document.getElementById(id).value = '');
+  mealItemPer100 = null;
+  document.getElementById('itemServingGramsWrap').style.display = 'none';
   renderTempMealItems();
 }
 
@@ -1368,22 +1511,41 @@ function saveMealDef(){
 }
 
 // --- Camera barcode scanning (ZXing library — works on Safari/iOS and Chrome/Android) ---
+// Generic so it can drive either the main Add Food scanner or the Create Meal scanner.
 let zxingReader = null;
-let cameraActive = false; // true once permission has been granted this session
-async function startScan(){
-  const statusEl = document.getElementById('barcodeStatus');
+let activeScanVideoId = null; // which video element currently owns the live stream
+
+function onMainBarcodeFound(text){
+  document.getElementById('barcodeInput').value = text;
+  pauseScan('camVideo','camWrap');
+  lookupBarcode();
+}
+function onMealBarcodeFound(text){
+  document.getElementById('mealBarcodeInput').value = text;
+  pauseScan('mealCamVideo','mealCamWrap');
+  lookupMealBarcode();
+}
+
+async function startScan(videoElId, wrapElId, statusElId, onResult){
+  const statusEl = document.getElementById(statusElId);
   if(typeof ZXing === 'undefined'){
     statusEl.textContent = 'Camera scanning library failed to load — check your connection, or enter the barcode number instead.';
     return;
   }
-  document.getElementById('camWrap').style.display = 'block';
+  document.getElementById(wrapElId).style.display = 'block';
   statusEl.textContent = 'Point the camera at a barcode…';
-  const videoEl = document.getElementById('camVideo');
+  const videoEl = document.getElementById(videoElId);
 
-  if(cameraActive && videoEl.srcObject){
+  if(activeScanVideoId === videoElId && videoEl.srcObject){
     // Camera was already granted earlier in this session — just resume, no new prompt
     try{ await videoEl.play(); }catch(e){}
     return;
+  }
+
+  // Switching to a different camera target — release any previous one first
+  if(zxingReader){
+    try{ zxingReader.reset(); }catch(e){}
+    zxingReader = null;
   }
 
   try{
@@ -1392,34 +1554,33 @@ async function startScan(){
       { video: { facingMode: { ideal: 'environment' } } },
       videoEl,
       (result, err) => {
-        if(result){
-          document.getElementById('barcodeInput').value = result.getText();
-          pauseScan();
-          lookupBarcode();
-        }
+        if(result) onResult(result.getText());
       }
     );
-    cameraActive = true;
+    activeScanVideoId = videoElId;
   }catch(err){
     statusEl.textContent = 'Camera access was denied or unavailable — enter the barcode number instead.';
-    cameraActive = false;
+    activeScanVideoId = null;
   }
 }
 // Pause: hide the preview but keep the camera connected so reopening doesn't ask for permission again
-function pauseScan(){
-  const videoEl = document.getElementById('camVideo');
+function pauseScan(videoElId, wrapElId){
+  const videoEl = document.getElementById(videoElId);
   if(videoEl) videoEl.pause();
-  const camWrap = document.getElementById('camWrap');
-  if(camWrap) camWrap.style.display = 'none';
+  const wrapEl = document.getElementById(wrapElId);
+  if(wrapEl) wrapEl.style.display = 'none';
 }
 // Full stop: releases the camera hardware entirely — used when the whole Add Food sheet closes
-function stopScan(){
-  pauseScan();
+function stopScanFull(){
   if(zxingReader){
     try{ zxingReader.reset(); }catch(e){}
     zxingReader = null;
   }
-  cameraActive = false;
+  activeScanVideoId = null;
+  ['camWrap','mealCamWrap'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.style.display = 'none';
+  });
 }
 
 function saveFood(){
