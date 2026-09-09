@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Daily — Calorie Tracker</title>
 <script src="https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <style>
   :root{
     --bg: #0c0d0d;
@@ -18,6 +21,7 @@
     --protein: #4f8dfc;
     --carbs: #ef5b5b;
     --fat: #e8c14a;
+    --water: #38bdf8;
     --radius-lg: 22px;
     --radius-md: 16px;
     --radius-sm: 12px;
@@ -184,7 +188,7 @@
 
   .macro-grid{
     display:grid;
-    grid-template-columns:repeat(3,1fr);
+    grid-template-columns:repeat(2,1fr);
     gap:12px;
   }
   .macro-card{
@@ -204,6 +208,7 @@
   .macro-tag.protein{background:var(--protein);color:#fff;}
   .macro-tag.carbs{background:var(--carbs);color:#fff;}
   .macro-tag.fat{background:var(--fat);}
+  .macro-tag.water{background:var(--water);color:#fff;}
   .macro-name{
     font-size:13.5px;font-weight:700;
     display:flex;align-items:center;gap:5px;
@@ -219,6 +224,19 @@
     font-size:16px;
     color:var(--text);
     font-weight:800;
+  }
+  .water-quick-row{
+    display:flex;gap:6px;margin-top:2px;
+  }
+  .water-chip{
+    background:var(--card-2);
+    border:1px solid var(--line);
+    color:var(--text);
+    font-size:11.5px;font-weight:700;
+    padding:6px 10px;
+    border-radius:999px;
+    cursor:pointer;
+    font-family:inherit;
   }
 
   .ai-banner{
@@ -451,6 +469,47 @@
     color:#fff;border:none;border-radius:50%;
     width:28px;height:28px;font-size:14px;cursor:pointer;
   }
+
+  .meal-item-row{
+    display:flex;align-items:center;gap:10px;
+    background:var(--card-2);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:9px 12px;
+    margin-bottom:8px;
+    font-size:13px;
+  }
+  .meal-item-row .mi-name{flex:1;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .meal-item-row .mi-meta{color:var(--muted);font-size:12px;flex-shrink:0;}
+  .meal-item-row .mi-del{
+    background:none;border:none;color:var(--muted);
+    font-size:16px;cursor:pointer;flex-shrink:0;padding:2px 4px;
+  }
+  .meal-total-row{
+    display:flex;justify-content:space-between;
+    font-size:13px;font-weight:700;
+    color:var(--text);
+    padding:8px 2px 14px;
+  }
+  .meal-total-row span{color:var(--muted);font-weight:600;}
+  .link-btn{
+    background:none;border:none;
+    color:var(--lime);
+    font-size:13.5px;font-weight:700;
+    text-decoration:underline;
+    cursor:pointer;
+    padding:4px 0 12px;
+    display:block;
+    font-family:inherit;
+  }
+  .meal-breakdown-list{
+    display:flex;flex-direction:column;gap:6px;
+    margin:8px 0 4px;
+  }
+  .meal-breakdown-list .mb-row{
+    display:flex;justify-content:space-between;
+    font-size:12.5px;color:var(--muted);
+  }
 </style>
 </head>
 <body>
@@ -458,8 +517,13 @@
 
   <header class="top">
     <h1>Daily</h1>
-    <div class="icon-btn">📈</div>
+    <div style="display:flex;gap:8px;">
+      <button class="icon-btn" onclick="exportCSV()" title="Export CSV" style="cursor:pointer;">⬇</button>
+      <div class="icon-btn">📈</div>
+    </div>
   </header>
+
+  <div id="syncBar" onclick="promptSyncCode()" style="font-size:12px;color:var(--muted);margin:-10px 0 18px;cursor:pointer;text-align:center;">Connecting to cloud sync…</div>
 
   <div class="date-strip" id="dateStrip"></div>
 
@@ -522,6 +586,21 @@
         </svg>
         <div class="macro-eaten">Eaten<b id="fatEaten">0.0g</b><span id="fatGoal">/65g</span></div>
       </div>
+      <div class="macro-card">
+        <div class="macro-tag water" id="waterPct">0%</div>
+        <div class="macro-name">🚰 Water</div>
+        <svg width="88" height="88" viewBox="0 0 88 88">
+          <circle cx="44" cy="44" r="38" stroke="#2a2c2d" stroke-width="8" fill="none"/>
+          <circle id="waterRing" cx="44" cy="44" r="38" stroke="var(--water)" stroke-width="8" fill="none"
+            stroke-linecap="round" stroke-dasharray="238.8" stroke-dashoffset="238.8" transform="rotate(-90 44 44)"/>
+        </svg>
+        <div class="macro-eaten">Drank<b id="waterAmount">0ml</b><span id="waterGoalTxt">/2000ml</span></div>
+        <div class="water-quick-row">
+          <button class="water-chip" onclick="addWater(250)">+250</button>
+          <button class="water-chip" onclick="addWater(500)">+500</button>
+          <button class="water-chip" onclick="addWaterCustom()">✎</button>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -547,6 +626,7 @@
     <div class="tab-row">
       <button class="tab-btn active" id="tabBtnSearch" onclick="switchTab('search')">Search</button>
       <button class="tab-btn" id="tabBtnBarcode" onclick="switchTab('barcode')">Barcode</button>
+      <button class="tab-btn" id="tabBtnMeal" onclick="switchTab('meal')">Meal</button>
       <button class="tab-btn" id="tabBtnManual" onclick="switchTab('manual')">Manual</button>
     </div>
 
@@ -564,7 +644,7 @@
     <div class="tab-panel" id="panelBarcode">
       <div id="camWrap">
         <video id="camVideo" autoplay playsinline muted></video>
-        <button class="cam-close" onclick="stopScan()">✕</button>
+        <button class="cam-close" onclick="pauseScan()">✕</button>
       </div>
       <div class="search-row">
         <input type="text" id="barcodeInput" placeholder="Enter barcode number" inputmode="numeric" onkeydown="if(event.key==='Enter')lookupBarcode()">
@@ -572,6 +652,20 @@
       </div>
       <button class="btn secondary" style="width:100%;margin-bottom:12px;" onclick="startScan()">📷 Scan with camera</button>
       <div id="barcodeStatus" class="status-msg">Scan a product barcode or type it in manually.</div>
+    </div>
+
+    <!-- Meal tab -->
+    <div class="tab-panel" id="panelMeal">
+      <div class="search-row">
+        <input type="text" id="mealSearchQuery" placeholder="Type a meal name…" oninput="filterMealSuggestions()">
+      </div>
+      <div class="results-list" id="mealSuggestions"></div>
+      <div id="mealSuggestStatus" class="status-msg"></div>
+      <button class="link-btn" onclick="openCreateMeal()">+ Create a new meal</button>
+
+      <div id="mealBreakdownWrap" style="display:none;">
+        <div class="selected-product" id="selectedMealInfo"></div>
+      </div>
     </div>
 
     <!-- Manual tab -->
@@ -656,6 +750,10 @@
         <input type="number" id="goalFat" placeholder="65">
       </div>
     </div>
+    <div class="field">
+      <label>Water goal (ml)</label>
+      <input type="number" id="goalWater" placeholder="2000">
+    </div>
     <div class="sheet-actions">
       <button class="btn secondary" onclick="closeGoalEdit()">Cancel</button>
       <button class="btn primary" onclick="saveGoal()">Save goals</button>
@@ -663,9 +761,162 @@
   </div>
 </div>
 
+<!-- Create Meal Modal -->
+<div class="overlay" id="createMealOverlay">
+  <div class="sheet">
+    <h2>Create a meal</h2>
+    <div class="field">
+      <label>Meal name</label>
+      <input type="text" id="newMealName" placeholder="e.g. Lunch Bowl">
+    </div>
+
+    <div class="row3">
+      <div class="field">
+        <label>Item name</label>
+        <input type="text" id="itemName" placeholder="e.g. Grilled chicken">
+      </div>
+      <div class="field">
+        <label>Calories</label>
+        <input type="number" id="itemCal" placeholder="0">
+      </div>
+      <div class="field">
+        <label>Protein (g)</label>
+        <input type="number" id="itemProtein" placeholder="0">
+      </div>
+    </div>
+    <div class="row3">
+      <div class="field">
+        <label>Carbs (g)</label>
+        <input type="number" id="itemCarbs" placeholder="0">
+      </div>
+      <div class="field">
+        <label>Fat (g)</label>
+        <input type="number" id="itemFat" placeholder="0">
+      </div>
+      <div class="field">
+        <label>&nbsp;</label>
+        <button class="btn secondary" style="width:100%;padding:12px;" onclick="addMealItemTemp()">+ Add item</button>
+      </div>
+    </div>
+
+    <div id="mealItemsList"></div>
+    <div class="meal-total-row" id="mealTempTotal" style="display:none;"></div>
+
+    <div class="sheet-actions">
+      <button class="btn secondary" onclick="closeCreateMeal()">Cancel</button>
+      <button class="btn primary" onclick="saveMealDef()">Save meal</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const STORAGE_KEY = 'calorie-tracker-data-v1';
 const GOAL_KEY = 'calorie-tracker-goals-v1';
+
+// --- Cloud sync (Firebase) ---
+const firebaseConfig = {
+  apiKey: "AIzaSyAnz2TQ1xFup_eiGFWqpixGngIdUVpOziI",
+  authDomain: "calorie-counter-f2194.firebaseapp.com",
+  projectId: "calorie-counter-f2194",
+  storageBucket: "calorie-counter-f2194.firebasestorage.app",
+  messagingSenderId: "327078880724",
+  appId: "1:327078880724:web:60a9a443897e15d85b2241"
+};
+firebase.initializeApp(firebaseConfig);
+const fbAuth = firebase.auth();
+const db = firebase.firestore();
+
+const SYNC_CODE_KEY = 'calorie-tracker-sync-code';
+let cloudReady = false;
+let syncTimer = null;
+let applyingRemoteData = false; // guard against re-pushing data we just pulled
+
+function getOrCreateSyncCode(){
+  let code = localStorage.getItem(SYNC_CODE_KEY);
+  if(!code){
+    code = Math.random().toString(36).substring(2,8).toUpperCase();
+    localStorage.setItem(SYNC_CODE_KEY, code);
+  }
+  return code;
+}
+function setSyncCode(code){
+  localStorage.setItem(SYNC_CODE_KEY, code.trim().toUpperCase());
+}
+function cloudDocRef(){
+  return db.collection('trackerUsers').doc(getOrCreateSyncCode());
+}
+function updateSyncBar(statusText){
+  const el = document.getElementById('syncBar');
+  if(el) el.textContent = 'Sync code: ' + getOrCreateSyncCode() + ' · ' + statusText + ' (tap to link a device)';
+}
+
+function scheduleCloudSync(){
+  if(!cloudReady || applyingRemoteData) return;
+  clearTimeout(syncTimer);
+  updateSyncBar('Syncing…');
+  syncTimer = setTimeout(pushToCloud, 800);
+}
+
+async function pushToCloud(){
+  try{
+    await cloudDocRef().set({
+      entries: loadAll(),
+      water: loadWaterAll(),
+      goals: loadGoals(),
+      meals: loadMeals(),
+      updatedAt: Date.now()
+    });
+    updateSyncBar('Synced ✓');
+  }catch(err){
+    updateSyncBar('Sync failed — check connection');
+  }
+}
+
+async function pullFromCloud(){
+  updateSyncBar('Loading your data…');
+  try{
+    const snap = await cloudDocRef().get();
+    if(snap.exists){
+      const data = snap.data();
+      applyingRemoteData = true;
+      if(data.entries) saveAll(data.entries);
+      if(data.water) saveWaterAll(data.water);
+      if(data.goals) saveGoals(data.goals);
+      if(data.meals) saveMealsToStorage(data.meals);
+      applyingRemoteData = false;
+      buildDateStrip();
+      render();
+      updateSyncBar('Synced ✓');
+    } else {
+      await pushToCloud();
+    }
+  }catch(err){
+    updateSyncBar('Offline — using data saved on this device');
+  }
+}
+
+function promptSyncCode(){
+  const current = getOrCreateSyncCode();
+  const input = prompt(
+    'This code links your data across devices.\n\nTo sync a NEW device: open this site there and enter this exact code.\nTo switch THIS device to a different saved code: type it below.',
+    current
+  );
+  if(input === null) return;
+  const trimmed = input.trim().toUpperCase();
+  if(!trimmed || trimmed === current) return;
+  setSyncCode(trimmed);
+  pullFromCloud();
+}
+
+fbAuth.onAuthStateChanged(user => {
+  if(user){
+    cloudReady = true;
+    pullFromCloud();
+  }
+});
+fbAuth.signInAnonymously().catch(() => {
+  updateSyncBar('Offline — using data saved on this device');
+});
 
 function todayKey(offset){
   const d = new Date();
@@ -681,14 +932,49 @@ function loadAll(){
 }
 function saveAll(data){
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  scheduleCloudSync();
 }
 function loadGoals(){
   try{
-    return JSON.parse(localStorage.getItem(GOAL_KEY)) || {cal:2000, protein:150, carbs:250, fat:65};
-  }catch(e){ return {cal:2000, protein:150, carbs:250, fat:65}; }
+    return JSON.parse(localStorage.getItem(GOAL_KEY)) || {cal:2000, protein:150, carbs:250, fat:65, water:2000};
+  }catch(e){ return {cal:2000, protein:150, carbs:250, fat:65, water:2000}; }
 }
 function saveGoals(g){
   localStorage.setItem(GOAL_KEY, JSON.stringify(g));
+  scheduleCloudSync();
+}
+
+const WATER_KEY = 'calorie-tracker-water-v1';
+function loadWaterAll(){
+  try{ return JSON.parse(localStorage.getItem(WATER_KEY)) || {}; }
+  catch(e){ return {}; }
+}
+function saveWaterAll(data){
+  localStorage.setItem(WATER_KEY, JSON.stringify(data));
+  scheduleCloudSync();
+}
+function addWater(ml){
+  const all = loadWaterAll();
+  all[selectedDate] = (all[selectedDate] || 0) + ml;
+  saveWaterAll(all);
+  render();
+}
+function addWaterCustom(){
+  const val = prompt('Add water (ml):', '200');
+  if(val === null) return;
+  const ml = parseFloat(val);
+  if(!ml || ml <= 0) return;
+  addWater(ml);
+}
+
+const MEALS_KEY = 'calorie-tracker-meals-v1';
+function loadMeals(){
+  try{ return JSON.parse(localStorage.getItem(MEALS_KEY)) || []; }
+  catch(e){ return []; }
+}
+function saveMealsToStorage(meals){
+  localStorage.setItem(MEALS_KEY, JSON.stringify(meals));
+  scheduleCloudSync();
 }
 
 function buildDateStrip(){
@@ -736,6 +1022,18 @@ function render(){
   setMacro('protein', totals.protein, goals.protein);
   setMacro('carbs', totals.carbs, goals.carbs);
   setMacro('fat', totals.fat, goals.fat);
+
+  const waterAll = loadWaterAll();
+  const waterAmt = waterAll[selectedDate] || 0;
+  const waterGoal = goals.water || 2000;
+  const waterPct = Math.min(100, Math.round((waterAmt/waterGoal)*100) || 0);
+  document.getElementById('waterPct').textContent = waterPct + '%';
+  document.getElementById('waterAmount').textContent = waterAmt + 'ml';
+  document.getElementById('waterGoalTxt').textContent = '/' + waterGoal + 'ml';
+  const wc = circumference(38);
+  const waterRing = document.getElementById('waterRing');
+  waterRing.setAttribute('stroke-dasharray', wc);
+  waterRing.setAttribute('stroke-dashoffset', wc - (wc*waterPct/100));
 
   const logList = document.getElementById('logList');
   const emptyHint = document.getElementById('emptyHint');
@@ -788,8 +1086,35 @@ function deleteEntry(idx){
   render();
 }
 
+function exportCSV(){
+  const all = loadAll();
+  const water = loadWaterAll();
+  const rows = [['Date','Time','Item','Calories','Protein (g)','Carbs (g)','Fat (g)']];
+  Object.keys(all).sort().forEach(date => {
+    (all[date] || []).forEach(e => {
+      rows.push([date, e.time || '', e.name, e.cal, e.protein, e.carbs, e.fat]);
+    });
+  });
+  rows.push([]);
+  rows.push(['Date','Water (ml)']);
+  Object.keys(water).sort().forEach(date => rows.push([date, water[date]]));
+
+  const csv = rows.map(r => r.map(v => '"' + String(v ?? '').replace(/"/g,'""') + '"').join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'calorie-tracker-export-' + todayKey(0) + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
 let currentTab = 'search';
 let pickedProduct = null; // {name, per100: {cal,protein,carbs,fat}}
+let pickedMeal = null; // {id, name, items:[...], totals:{...}}
+let tempMealItems = []; // items being built in Create Meal sheet
 
 function openAdd(){
   document.getElementById('addOverlay').classList.add('show');
@@ -799,28 +1124,36 @@ function closeAdd(){
   document.getElementById('addOverlay').classList.remove('show');
   stopScan();
   ['foodNameManual','foodCalManual','foodProteinManual','foodCarbsManual','foodFatManual',
-   'foodCal','foodProtein','foodCarbs','foodFat','searchQuery','barcodeInput'].forEach(id => {
+   'foodCal','foodProtein','foodCarbs','foodFat','searchQuery','barcodeInput','mealSearchQuery'].forEach(id => {
     const el = document.getElementById(id);
     if(el) el.value = '';
   });
   document.getElementById('searchResults').innerHTML = '';
   document.getElementById('productConfirm').style.display = 'none';
   document.getElementById('servingGrams').value = 100;
+  document.getElementById('mealSuggestions').innerHTML = '';
+  document.getElementById('mealSuggestStatus').textContent = '';
+  document.getElementById('mealBreakdownWrap').style.display = 'none';
   pickedProduct = null;
+  pickedMeal = null;
 }
 
 function switchTab(tab){
   currentTab = tab;
-  ['search','barcode','manual'].forEach(t=>{
+  ['search','barcode','manual','meal'].forEach(t=>{
     document.getElementById('panel'+cap(t)).classList.toggle('active', t===tab);
     document.getElementById('tabBtn'+cap(t)).classList.toggle('active', t===tab);
   });
-  if(tab !== 'barcode') stopScan();
+  if(tab !== 'barcode') pauseScan();
   // product confirm block only makes sense under search/barcode
-  if(tab === 'manual'){
+  if(tab === 'search' || tab === 'barcode'){
+    document.getElementById('productConfirm').style.display = pickedProduct ? 'block' : 'none';
+  } else {
     document.getElementById('productConfirm').style.display = 'none';
-  } else if(pickedProduct){
-    document.getElementById('productConfirm').style.display = 'block';
+  }
+  if(tab === 'meal'){
+    document.getElementById('mealBreakdownWrap').style.display = pickedMeal ? 'block' : 'none';
+    if(!pickedMeal) filterMealSuggestions();
   }
 }
 function cap(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
@@ -909,8 +1242,134 @@ function rescaleServing(){
   document.getElementById('foodFat').value = (pickedProduct.per100.fat * factor).toFixed(1);
 }
 
+// --- Meals: reusable groups of food items ---
+function filterMealSuggestions(){
+  const q = document.getElementById('mealSearchQuery').value.trim().toLowerCase();
+  const listEl = document.getElementById('mealSuggestions');
+  const statusEl = document.getElementById('mealSuggestStatus');
+  const meals = loadMeals();
+  listEl.innerHTML = '';
+  pickedMeal = null;
+  document.getElementById('mealBreakdownWrap').style.display = 'none';
+
+  if(meals.length === 0){
+    statusEl.textContent = 'No saved meals yet — create one below.';
+    return;
+  }
+  const matches = q ? meals.filter(m => m.name.toLowerCase().includes(q)) : meals;
+  if(matches.length === 0){
+    statusEl.textContent = 'No matching meals — create a new one below.';
+    return;
+  }
+  statusEl.textContent = 'Tap a saved meal to use it:';
+  matches.slice(0,8).forEach(m => {
+    const item = document.createElement('button');
+    item.className = 'result-item';
+    item.innerHTML = `
+      <div class="log-icon" style="width:40px;height:40px;font-size:18px;">🍱</div>
+      <div class="result-info">
+        <div class="result-name">${escapeHtml(m.name)}</div>
+        <div class="result-meta">${Math.round(m.totals.cal)} kcal · ${m.items.length} item${m.items.length===1?'':'s'}</div>
+      </div>
+    `;
+    item.onclick = () => pickMeal(m);
+    listEl.appendChild(item);
+  });
+}
+
+function pickMeal(m){
+  pickedMeal = m;
+  document.getElementById('mealSearchQuery').value = m.name;
+  document.getElementById('mealSuggestions').innerHTML = '';
+  document.getElementById('mealSuggestStatus').textContent = '';
+  document.getElementById('mealBreakdownWrap').style.display = 'block';
+  const rows = m.items.map(it =>
+    `<div class="mb-row"><span>${escapeHtml(it.name)}</span><span>${Math.round(it.cal)} kcal</span></div>`
+  ).join('');
+  document.getElementById('selectedMealInfo').innerHTML = `
+    <div class="sp-name">${escapeHtml(m.name)}</div>
+    <div class="meal-breakdown-list">${rows}</div>
+    <div class="sp-meta">Total: ${Math.round(m.totals.cal)} kcal · P${m.totals.protein.toFixed(1)}g · C${m.totals.carbs.toFixed(1)}g · F${m.totals.fat.toFixed(1)}g</div>
+  `;
+}
+
+function openCreateMeal(){
+  tempMealItems = [];
+  document.getElementById('newMealName').value = '';
+  ['itemName','itemCal','itemProtein','itemCarbs','itemFat'].forEach(id => document.getElementById(id).value = '');
+  renderTempMealItems();
+  document.getElementById('createMealOverlay').classList.add('show');
+}
+function closeCreateMeal(){
+  document.getElementById('createMealOverlay').classList.remove('show');
+}
+
+function addMealItemTemp(){
+  const name = document.getElementById('itemName').value.trim();
+  const cal = parseFloat(document.getElementById('itemCal').value) || 0;
+  const protein = parseFloat(document.getElementById('itemProtein').value) || 0;
+  const carbs = parseFloat(document.getElementById('itemCarbs').value) || 0;
+  const fat = parseFloat(document.getElementById('itemFat').value) || 0;
+  if(!name || cal <= 0){
+    alert('Add an item name and calorie amount first.');
+    return;
+  }
+  tempMealItems.push({name, cal, protein, carbs, fat});
+  ['itemName','itemCal','itemProtein','itemCarbs','itemFat'].forEach(id => document.getElementById(id).value = '');
+  renderTempMealItems();
+}
+
+function removeMealItemTemp(idx){
+  tempMealItems.splice(idx,1);
+  renderTempMealItems();
+}
+
+function renderTempMealItems(){
+  const listEl = document.getElementById('mealItemsList');
+  const totalEl = document.getElementById('mealTempTotal');
+  listEl.innerHTML = '';
+  tempMealItems.forEach((it, idx) => {
+    const row = document.createElement('div');
+    row.className = 'meal-item-row';
+    row.innerHTML = `
+      <span class="mi-name">${escapeHtml(it.name)}</span>
+      <span class="mi-meta">${Math.round(it.cal)} kcal</span>
+      <button class="mi-del" onclick="removeMealItemTemp(${idx})">✕</button>
+    `;
+    listEl.appendChild(row);
+  });
+  if(tempMealItems.length === 0){
+    totalEl.style.display = 'none';
+  } else {
+    const t = tempMealItems.reduce((acc,it)=>{
+      acc.cal+=it.cal; acc.protein+=it.protein; acc.carbs+=it.carbs; acc.fat+=it.fat; return acc;
+    }, {cal:0,protein:0,carbs:0,fat:0});
+    totalEl.style.display = 'flex';
+    totalEl.innerHTML = `<span>Total (${tempMealItems.length} item${tempMealItems.length===1?'':'s'})</span> ${Math.round(t.cal)} kcal`;
+  }
+}
+
+function saveMealDef(){
+  const name = document.getElementById('newMealName').value.trim();
+  if(!name){ alert('Give the meal a name.'); return; }
+  if(tempMealItems.length === 0){ alert('Add at least one item to the meal.'); return; }
+  const totals = tempMealItems.reduce((acc,it)=>{
+    acc.cal+=it.cal; acc.protein+=it.protein; acc.carbs+=it.carbs; acc.fat+=it.fat; return acc;
+  }, {cal:0,protein:0,carbs:0,fat:0});
+  const meal = { id: Date.now().toString(), name, items: tempMealItems.slice(), totals };
+  const meals = loadMeals();
+  meals.push(meal);
+  saveMealsToStorage(meals);
+  closeCreateMeal();
+  // jump back to the Meal tab with the new meal ready to log
+  document.getElementById('mealSearchQuery').value = '';
+  filterMealSuggestions();
+  pickMeal(meal);
+}
+
 // --- Camera barcode scanning (ZXing library — works on Safari/iOS and Chrome/Android) ---
 let zxingReader = null;
+let cameraActive = false; // true once permission has been granted this session
 async function startScan(){
   const statusEl = document.getElementById('barcodeStatus');
   if(typeof ZXing === 'undefined'){
@@ -919,36 +1378,74 @@ async function startScan(){
   }
   document.getElementById('camWrap').style.display = 'block';
   statusEl.textContent = 'Point the camera at a barcode…';
+  const videoEl = document.getElementById('camVideo');
+
+  if(cameraActive && videoEl.srcObject){
+    // Camera was already granted earlier in this session — just resume, no new prompt
+    try{ await videoEl.play(); }catch(e){}
+    return;
+  }
+
   try{
     zxingReader = new ZXing.BrowserMultiFormatReader();
-    const videoEl = document.getElementById('camVideo');
     await zxingReader.decodeFromConstraints(
       { video: { facingMode: { ideal: 'environment' } } },
       videoEl,
       (result, err) => {
         if(result){
           document.getElementById('barcodeInput').value = result.getText();
-          stopScan();
+          pauseScan();
           lookupBarcode();
         }
       }
     );
+    cameraActive = true;
   }catch(err){
     statusEl.textContent = 'Camera access was denied or unavailable — enter the barcode number instead.';
-    stopScan();
+    cameraActive = false;
   }
 }
+// Pause: hide the preview but keep the camera connected so reopening doesn't ask for permission again
+function pauseScan(){
+  const videoEl = document.getElementById('camVideo');
+  if(videoEl) videoEl.pause();
+  const camWrap = document.getElementById('camWrap');
+  if(camWrap) camWrap.style.display = 'none';
+}
+// Full stop: releases the camera hardware entirely — used when the whole Add Food sheet closes
 function stopScan(){
+  pauseScan();
   if(zxingReader){
     try{ zxingReader.reset(); }catch(e){}
     zxingReader = null;
   }
-  const camWrap = document.getElementById('camWrap');
-  if(camWrap) camWrap.style.display = 'none';
+  cameraActive = false;
 }
 
 function saveFood(){
   let name, cal, protein, carbs, fat;
+  if(currentTab === 'meal'){
+    if(!pickedMeal){
+      alert('Pick a saved meal above, or create a new one first.');
+      return;
+    }
+    const all = loadAll();
+    const entries = all[selectedDate] || [];
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+    pickedMeal.items.forEach(it => {
+      entries.push({
+        name: it.name + ' (' + pickedMeal.name + ')',
+        cal: it.cal, protein: it.protein, carbs: it.carbs, fat: it.fat,
+        time: timeStr
+      });
+    });
+    all[selectedDate] = entries;
+    saveAll(all);
+    closeAdd();
+    render();
+    return;
+  }
   if(currentTab === 'manual'){
     name = document.getElementById('foodNameManual').value.trim();
     cal = parseFloat(document.getElementById('foodCalManual').value) || 0;
@@ -990,6 +1487,7 @@ function openGoalEdit(){
   document.getElementById('goalProtein').value = g.protein;
   document.getElementById('goalCarbs').value = g.carbs;
   document.getElementById('goalFat').value = g.fat;
+  document.getElementById('goalWater').value = g.water || 2000;
   document.getElementById('goalOverlay').classList.add('show');
 }
 function closeGoalEdit(){
@@ -1001,6 +1499,7 @@ function saveGoal(){
     protein: parseFloat(document.getElementById('goalProtein').value) || 150,
     carbs: parseFloat(document.getElementById('goalCarbs').value) || 250,
     fat: parseFloat(document.getElementById('goalFat').value) || 65,
+    water: parseFloat(document.getElementById('goalWater').value) || 2000,
   };
   saveGoals(g);
   closeGoalEdit();
@@ -1009,6 +1508,16 @@ function saveGoal(){
 
 buildDateStrip();
 render();
+updateSyncBar('Connecting…');
+
+// Select all existing text when a number field is focused, so typing overwrites instead of appending
+document.querySelectorAll('input[type="number"]').forEach(inp => {
+  inp.addEventListener('focus', function(){
+    const el = this;
+    setTimeout(() => el.select(), 0);
+  });
+});
+
 </script>
 </body>
 </html>
