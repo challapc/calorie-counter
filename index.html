@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Daily — Calorie Tracker</title>
+<script src="https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js"></script>
 <style>
   :root{
     --bg: #0c0d0d;
@@ -908,46 +909,39 @@ function rescaleServing(){
   document.getElementById('foodFat').value = (pickedProduct.per100.fat * factor).toFixed(1);
 }
 
-// --- Camera barcode scanning (uses native BarcodeDetector where available) ---
-let scanStream = null;
-let scanRAF = null;
+// --- Camera barcode scanning (ZXing library — works on Safari/iOS and Chrome/Android) ---
+let zxingReader = null;
 async function startScan(){
   const statusEl = document.getElementById('barcodeStatus');
-  if(!('BarcodeDetector' in window)){
-    statusEl.textContent = 'Camera scanning isn\'t supported in this browser — enter the barcode number instead.';
+  if(typeof ZXing === 'undefined'){
+    statusEl.textContent = 'Camera scanning library failed to load — check your connection, or enter the barcode number instead.';
     return;
   }
+  document.getElementById('camWrap').style.display = 'block';
+  statusEl.textContent = 'Point the camera at a barcode…';
   try{
-    scanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-    const video = document.getElementById('camVideo');
-    video.srcObject = scanStream;
-    document.getElementById('camWrap').style.display = 'block';
-    const detector = new BarcodeDetector({ formats: ['ean_13','ean_8','upc_a','upc_e','code_128'] });
-    statusEl.textContent = 'Point the camera at a barcode…';
-    const scanLoop = async () => {
-      if(!scanStream) return;
-      try{
-        const codes = await detector.detect(video);
-        if(codes.length > 0){
-          document.getElementById('barcodeInput').value = codes[0].rawValue;
+    zxingReader = new ZXing.BrowserMultiFormatReader();
+    const videoEl = document.getElementById('camVideo');
+    await zxingReader.decodeFromConstraints(
+      { video: { facingMode: { ideal: 'environment' } } },
+      videoEl,
+      (result, err) => {
+        if(result){
+          document.getElementById('barcodeInput').value = result.getText();
           stopScan();
           lookupBarcode();
-          return;
         }
-      }catch(e){ /* keep trying */ }
-      scanRAF = requestAnimationFrame(scanLoop);
-    };
-    scanRAF = requestAnimationFrame(scanLoop);
+      }
+    );
   }catch(err){
     statusEl.textContent = 'Camera access was denied or unavailable — enter the barcode number instead.';
+    stopScan();
   }
 }
 function stopScan(){
-  if(scanRAF) cancelAnimationFrame(scanRAF);
-  scanRAF = null;
-  if(scanStream){
-    scanStream.getTracks().forEach(t => t.stop());
-    scanStream = null;
+  if(zxingReader){
+    try{ zxingReader.reset(); }catch(e){}
+    zxingReader = null;
   }
   const camWrap = document.getElementById('camWrap');
   if(camWrap) camWrap.style.display = 'none';
